@@ -1,4 +1,4 @@
-#!/bin/dash
+#!/bin/sh
 
 # ----- Usage string -----
 USAGE='USAGE: clar [-v] DIR'
@@ -34,7 +34,7 @@ EXT=".tmp .class .aux .log .toc"
 walk_dirs() {
   # Verbose
   if [ $VERBOSE -eq 1 ] ; then
-    echo "[  ] $1"
+    printf "[  ] \e[1m$1\e[0m\n"
     # folders
     for FLD in $FOLDERS ; do
       if [ -d $1/$FLD ] ; then
@@ -53,7 +53,7 @@ walk_dirs() {
         echo "  $ETN"
       fi
     done  
-    echo "[OK] $1\n"
+    printf "[\e[32mOK\e[0m] \e[1m$1\e[0m\n\n"
   fi
 
   # Remove
@@ -85,7 +85,7 @@ tar czf "$1.tar.gz" "$1"
 
 # ----- Verbose option -----
 if [ $VERBOSE -eq 1 ] ; then
-  echo " -> $1.tar.gz created.\n"
+  printf " -> \e[1m$1.tar.gz\e[0m created.\n\n"
   echo "It's done!"
 fi
 
