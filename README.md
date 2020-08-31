@@ -15,6 +15,7 @@ Create a clean tar archive compressed with gzip.
 
 **Deleted folders:** (`$FOLDERS`)
  * .git/
+ * .vscode/
 
 **Deleted files:** (`$FILES`)
  * .gitignore
@@ -26,3 +27,4 @@ Create a clean tar archive compressed with gzip.
  * *.aux
  * *.log
  * *.toc
+ * *.o
