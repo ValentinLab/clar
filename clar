@@ -1,28 +1,56 @@
 #!/bin/sh
 
 # ----- Usage string -----
-USAGE='USAGE: clar [-v] DIR'
+USAGE='usage: clar [-v -r -h] source_directory'
 
 # ----- One argument is needed -----
-if [ $# -lt 1 ] || [ $# -gt 2 ] ; then
-  echo "Error: One argument is needed.\n$USAGE"
+if [ $# -eq 0 ] ; then
+  echo "Error: At least one argument needed.\n$USAGE"
   exit 1
 fi
 
-# ----- Check if the verbose option is present -----
-if [ "$1" = "-v" ] ; then
-  VERBOSE=1
-  shift
-else
-  VERBOSE=0
-fi
+# ----- Check the options -----
+# Options :
+#   -v : verbose
+#   -r : remove the source directory
+#   -h : help!
+VERBOSE=0
+REMOVE=0
+SOURCE=""
+for OPT in $@ ; do
+  if [ "$OPT" = '-v' ] ; then
+    # Verbose
+    VERBOSE=1
+  elif [ "$OPT" = '-r' ] ; then
+    # Remove
+    REMOVE=1
+  elif [ "$OPT" = '-h' ] ; then
+    # Help
+    echo "clar -- create a clean tar archive compressed with gzip\n$USAGE"
+    echo '\nABOUT:'
+    echo 'Files such as .DS_Store, .git, *.class, etc. are deleted and a tar archive is created.'
+    echo 'The archive name is "source_directory.tar.gz".'
+    echo '\nOPTIONS:'
+    echo '\t-v : verbose\n\t-r : delete source directory'
+    exit 0
+  elif echo "$OPT" | grep -E '\-.*' 2> /dev/null >&2 ; then
+    echo "Error: Unknown option '$OPT'.\n$USAGE"
+    exit 1
+  else
+    if ! [ -z "$SOURCE" ] ; then
+      echo "Error: Only one path to the directory is needed\n$USAGE"
+      exit 1
+    fi
+    SOURCE=$OPT
+  fi
+done
 
 # ----- The argument must be a directory -----
-if [ "$1" = '.' ] || [ "$1" = '..' ] ; then
+if [ "$SOURCE" = '.' ] || [ "$SOURCE" = '..' ] ; then
   echo "Error: The directory can't be '.' or '..'.\n$USAGE"
   exit 1
 fi
-if ! [ -d "$1" ] ; then
+if ! [ -d "$SOURCE" ] ; then
   echo "Error: The directory must exists.\n$USAGE"
   exit 1
 fi
@@ -78,15 +106,24 @@ walk_dirs() {
     fi
   done
 }
-walk_dirs "$1"
+CP_SOURCE="/tmp/$SOURCE"
+cp -R "$SOURCE" $CP_SOURCE
+walk_dirs $SOURCE
 
 # ----- Create tar.gz -----
-tar czf "$1.tar.gz" "$1"
+tar czfP "$SOURCE.tar.gz" $SOURCE
 
 # ----- Verbose option -----
 if [ $VERBOSE -eq 1 ] ; then
-  printf " -> \e[1m$1.tar.gz\e[0m created.\n\n"
+  printf " -> \e[1m$SOURCE.tar.gz\e[0m created.\n\n"
   echo "It's done!"
 fi
+
+# ----- Remove tmp and source -----
+rm -rf "$SOURCE"
+if [ $REMOVE -eq 0 ] ; then
+  cp -r "$CP_SOURCE" "$SOURCE"
+fi
+rm -rf "$CP_SOURCE"
 
 exit 0
